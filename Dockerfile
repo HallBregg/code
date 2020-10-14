@@ -1,16 +1,10 @@
-FROM python:3.8-alpine
+FROM python:3.9
 
-RUN apk add --no-cache --virtual .build-deps gcc postgresql-dev musl-dev python3-dev
-RUN apk add libpq
+RUN apt-get update && apt-get -y upgrade
+WORKDIR /app
 
-COPY requirements.txt /tmp/
-RUN pip install -r /tmp/requirements.txt
+COPY ./requirements.txt .
+RUN pip install -r requirements.txt
 
-RUN apk del --no-cache .build-deps
+COPY . .
 
-RUN mkdir -p /src
-COPY src/ /src/
-RUN pip install -e /src
-COPY tests/ /tests/
-
-WORKDIR /src
