@@ -3,7 +3,11 @@ from typing import Optional, NoReturn
 from datetime import date
 
 
-@dataclass(frozen=True)
+class OutOfStock(Exception):
+    pass
+
+
+@dataclass(unsafe_hash=True)
 class OrderLine:
     orderid: str
     sku: str
@@ -54,17 +58,14 @@ class Batch:
             self._allocations.remove(line)
 
     def can_allocate(self, line: OrderLine) -> bool:
-        return self.sku == line.sku and self._purchased_quantity >= line.qty
-
-
-class OutOfStock(Exception):
-    pass
+        return self.sku == line.sku and self.available_quantity >= line.qty
 
 
 def allocate(line: OrderLine, batches: list[Batch]) -> str:
     try:
         batch = next(b for b in sorted(batches) if b.can_allocate(line))
         batch.allocate(line)
-        return batch.reference
     except StopIteration:
         raise OutOfStock(f'Out of stock for sku {line.sku}')
+    else:
+        return batch.reference

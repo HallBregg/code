@@ -34,7 +34,7 @@ def test_allocating_to_a_batch_reduces_the_available_quantity():
     batch = Batch('batch-001', 'SMALL-TABLE', qty=20, eta=date.today())
     line = OrderLine('order-ref', 'SMALL-TABLE', 2)
     batch.allocate(line)
-    assert batch._purchased_quantity == 18
+    assert batch.available_quantity == 18
 
 
 def test_can_only_deallocate_allocated_lines():
