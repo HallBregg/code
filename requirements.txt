@@ -1,2 +1,5 @@
 pytest
-SQLAlchemy
+sqlalchemy
+flask
+psycopg2
+requests

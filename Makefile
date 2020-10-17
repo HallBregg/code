@@ -1,6 +1,28 @@
 build:
-	docker build -t book .
+	docker-compose build
 
 
-test: build
-	docker run --rm -it book pytest
+pull:
+	docker-compose pull
+
+
+test: build app-test down
+
+
+app-test:
+	docker-compose run --rm app pytest
+
+
+up:
+	docker-compose up -d
+
+
+down:
+	docker-compose down
+
+
+logs:
+	docker-compose logs -f
+
+
+all: down build up test
