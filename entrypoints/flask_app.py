@@ -1,12 +1,11 @@
-import services
+from service_layer import services
 from flask import Flask, request, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import config
-import model
-import orm
-import repository
+from domain import model
+from adapters import repository, orm
 
 orm.start_mappers()
 get_session = sessionmaker(create_engine(config.get_postgres_uri()))

@@ -1,5 +1,5 @@
 from datetime import date, timedelta
-from model import allocate, OrderLine, Batch, OutOfStock
+from domain.model import allocate, OrderLine, Batch, OutOfStock
 
 import pytest
 
