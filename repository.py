@@ -14,6 +14,9 @@ class AbstractRepository(abc.ABC):
     def get(self, reference) -> model.Batch:
         raise NotImplementedError
 
+    def list(self):
+        pass
+
 
 # Adapter
 class SqlAlchemyRepository(AbstractRepository):

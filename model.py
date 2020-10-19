@@ -20,7 +20,7 @@ class Batch:
     ):
         self.reference = ref
         self.sku = sku
-        self.eta = eta
+        self.eta = eta  # Estimated time of arrival
         self._purchased_quantity = qty
         self._allocations: set[OrderLine] = set()
 

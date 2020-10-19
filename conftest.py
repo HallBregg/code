@@ -30,6 +30,7 @@ def postgres_db():
     engine = create_engine(config.get_postgres_uri())
     wait_for_postgres_to_come_up(engine)
     metadata.create_all(engine)
+    return engine
 
 
 @pytest.fixture
@@ -48,7 +49,6 @@ def postgres_session(postgres_db):
 
 @pytest.fixture
 def add_stock(postgres_session):
-    # Why?!? This should be done in a transaction... Not this way...
     batches_added = set()
     skus_added = set()
 
@@ -56,11 +56,13 @@ def add_stock(postgres_session):
         for ref, sku, qty, eta in lines:
             postgres_session.execute(
                 'INSERT INTO batches (reference, sku, _purchased_quantity, eta)'
-                'VALUES (:ref, :sku, :qty, :eta)',
-                dict(ref=ref, sku=sku, qty=qty, eta=eta)
+                ' VALUES (:ref, :sku, :qty, :eta)',
+                dict(ref=ref, sku=sku, qty=qty, eta=eta),
             )
             [[batch_id]] = postgres_session.execute(
-                'SELECT id FROM batches WHERE reference=:ref AND sku=:sku', dict(ref=ref, sku=sku))
+                'SELECT id FROM batches WHERE reference=:ref AND sku=:sku',
+                dict(ref=ref, sku=sku),
+            )
             batches_added.add(batch_id)
             skus_added.add(sku)
         postgres_session.commit()
