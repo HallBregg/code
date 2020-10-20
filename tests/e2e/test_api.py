@@ -4,7 +4,7 @@ from typing import Any
 import pytest
 import requests
 
-import config
+from allocation import config
 
 
 def random_suffix():

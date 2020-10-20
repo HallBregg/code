@@ -1,27 +1,25 @@
 build:
 	docker-compose build
 
-
-app-test:
-	docker-compose run --rm -e API_HOST=app app pytest
-
-
-pull:
-	docker-compose pull
-
 up:
-	docker-compose up -d
+	docker-compose up -d app
 
+test: up
+	docker-compose run --rm --no-deps --entrypoint=pytest app /tests/unit /tests/integration /tests/e2e
 
-down:
-	docker-compose down
+unit-tests:
+	docker-compose run --rm --no-deps --entrypoint=pytest app /tests/unit
 
+integration-tests: up
+	docker-compose run --rm --no-deps --entrypoint=pytest app /tests/integration
+
+e2e-tests: up
+	docker-compose run --rm --no-deps --entrypoint=pytest app /tests/e2e
 
 logs:
-	docker-compose logs -f
+	docker-compose logs app | tail -100
 
-
-test: build up app-test down
-
+down:
+	docker-compose down --remove-orphans
 
 all: down build up test
