@@ -1,28 +1,37 @@
-from allocation.service_layer import services
-from flask import Flask, request, jsonify
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from allocation import config
+from datetime import datetime
+from flask import Flask, jsonify, request
+
 from allocation.domain import model
-from allocation.adapters import repository, orm
+from allocation.adapters import orm
+from allocation.service_layer import services, unit_of_work
 
-orm.start_mappers()
-get_session = sessionmaker(create_engine(config.get_postgres_uri()))
 app = Flask(__name__)
+orm.start_mappers()
 
 
-@app.route('/allocate', methods=['POST'])
-def allocate_endpoint():
-    session = get_session()
-    repo = repository.SqlAlchemyRepository(session)
-    line = model.OrderLine(
-        request.json['orderid'],
-        request.json['sku'],
-        request.json['qty']
+@app.route("/add_batch", methods=['POST'])
+def add_batch():
+    eta = request.json['eta']
+    if eta is not None:
+        eta = datetime.fromisoformat(eta).date()
+    services.add_batch(
+        request.json['ref'], request.json['sku'], request.json['qty'], eta,
+        unit_of_work.SqlAlchemyUnitOfWork(),
     )
+    return 'OK', 201
+
+
+@app.route("/allocate", methods=['POST'])
+def allocate_endpoint():
     try:
-        batchref = services.allocate(line, repo, session)
+        batchref = services.allocate(
+            request.json['orderid'],
+            request.json['sku'],
+            request.json['qty'],
+            unit_of_work.SqlAlchemyUnitOfWork(),
+        )
     except (model.OutOfStock, services.InvalidSku) as e:
         return jsonify({'message': str(e)}), 400
+
     return jsonify({'batchref': batchref}), 201
