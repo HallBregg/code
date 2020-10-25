@@ -1,6 +1,7 @@
 from allocation.domain import model
 from datetime import date
 
+
 def test_orderline_mapper_can_load_lines(session):
     session.execute(
         'INSERT INTO order_lines (orderid, sku, qty) VALUES '
@@ -23,7 +24,6 @@ def test_orderline_mapper_can_save_lines(session):
 
     rows = list(session.execute('SELECT orderid, sku, qty FROM "order_lines"'))
     assert rows == [("order1", "DECORATIVE-WIDGET", 12)]
-
 
 
 def test_retrieving_batches(session):
@@ -51,6 +51,7 @@ def test_saving_batches(session):
         'SELECT reference, sku, _purchased_quantity, eta FROM "batches"'
     ))
     assert rows == [('batch1', 'sku1', 100, None)]
+
 
 def test_saving_allocations(session):
     batch = model.Batch('batch1', 'sku1', 100, eta=None)

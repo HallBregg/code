@@ -16,7 +16,9 @@ def add_batch():
     if eta is not None:
         eta = datetime.fromisoformat(eta).date()
     services.add_batch(
-        request.json['ref'], request.json['sku'], request.json['qty'], eta,
+        request.json['ref'],
+        request.json['sku'],
+        request.json['qty'], eta,
         unit_of_work.SqlAlchemyUnitOfWork(),
     )
     return 'OK', 201
