@@ -6,62 +6,36 @@ from allocation.domain import model
 # Port
 class AbstractRepository(abc.ABC):
 
+    def __init__(self):
+        self.seen: set[model.Product] = set()
+
+    def add(self, product):
+        self._add(product)
+        self.seen.add(product)
+
+    def get(self, sku) -> model.Product:
+        if product := self._get(sku):
+            self.seen.add(product)
+        return product
+
     @abc.abstractmethod
-    def add(self, batch: model.Batch):
+    def _add(self, product: model.Product):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get(self, reference) -> model.Batch:
+    def _get(self, sku) -> model.Product:
         raise NotImplementedError
-
-    def list(self):
-        pass
 
 
 # Adapter
 class SqlAlchemyRepository(AbstractRepository):
 
     def __init__(self, session):
+        super().__init__()
         self.session = session
 
-    def add(self, batch):
-        self.session.add(batch)
+    def _add(self, product):
+        self.session.add(product)
 
-    def get(self, reference):
-        # Return exactly one result or raise an exception.
-        return self.session.query(model.Batch).filter_by(reference=reference).one()
-
-    def list(self):
-        return self.session.query(model.Batch).all()
-
-
-# Adapter
-class SqlRepository(AbstractRepository):
-    # No need to use ORM :)
-
-    def __init__(self, session):
-        self.session = session
-
-    def add(self, batch):
-        self.session.execute(
-            'INSERT INTO batches (reference, sku, _purchased_quantity, eta)'
-            'VALUES (:reference, :sku, :_purchased_quantity, :eta)',
-            dict(
-                reference=batch.reference,
-                sku=batch.sku,
-                _purchased_quantity=batch._purchased_quantity,
-                eta=batch.eta,
-            )
-        )
-
-    def get(self, reference):
-        try:
-            [data] = self.session.execute(
-                'SELECT * FROM batches WHERE reference=:reference',
-                dict(reference=reference)
-            )
-        except ValueError:
-            raise ValueError('Caught error :) No object, or too many objects')
-        else:
-            # Won't work because of id
-            return model.Batch(*data)
+    def _get(self, sku):
+        return self.session.query(model.Product).filter_by(sku=sku).first()

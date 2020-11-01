@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import Optional, NoReturn
 from datetime import date
 
+from allocation.domain import events
+
 
 class OutOfStock(Exception):
     pass
@@ -61,11 +63,22 @@ class Batch:
         return self.sku == line.sku and self.available_quantity >= line.qty
 
 
-def allocate(line: OrderLine, batches: list[Batch]) -> str:
-    try:
-        batch = next(b for b in sorted(batches) if b.can_allocate(line))
-        batch.allocate(line)
-    except StopIteration:
-        raise OutOfStock(f'Out of stock for sku {line.sku}')
-    else:
-        return batch.reference
+class Product:
+
+    def __init__(self, sku: str, batches: list[Batch], version_number: int = 0):
+        self.sku: str = sku
+        self.batches = batches
+        self.version_number = version_number
+        self.events: list[events.Event] = []
+
+    def allocate(self, line: OrderLine) -> str:
+        try:
+            batch = next(b for b in sorted(self.batches) if b.can_allocate(line))
+            batch.allocate(line)
+            self.version_number += 1
+        except StopIteration:
+            self.events.append(events.OutOfStock(line.sku))
+            # We dont need to raise exceptions because events will handle that.
+            # raise OutOfStock(f'Out of stock for sku {line.sku}')
+        else:
+            return batch.reference
