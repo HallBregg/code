@@ -39,3 +39,21 @@ class SqlAlchemyRepository(AbstractRepository):
 
     def _get(self, sku):
         return self.session.query(model.Product).filter_by(sku=sku).first()
+
+
+# Adapter; composition over inheritance
+class TrackingRepository:
+    seen: set[model.Product]
+
+    def __init__(self, repo: AbstractRepository):
+        self.seen = set()
+        self._repo = repo
+
+    def add(self, product: model.Product):
+        self._repo.add(product)
+        self.seen.add(product)
+
+    def get(self, sku) -> model.Product:
+        if product := self._repo.get(sku):
+            self.seen.add(product)
+        return product
