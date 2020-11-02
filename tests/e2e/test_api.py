@@ -2,7 +2,7 @@ import pytest
 import requests
 
 from allocation import config
-from tests.random_refs import random_sku, random_batchref, random_orderid
+from ..random_refs import random_sku, random_batchref, random_orderid
 
 
 def post_to_add_batch(ref, sku, qty, eta):

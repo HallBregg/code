@@ -1,10 +1,11 @@
 import threading
 import time
 import traceback
+from typing import List
 import pytest
 from allocation.domain import model
 from allocation.service_layer import unit_of_work
-from tests.random_refs import random_sku, random_batchref, random_orderid
+from ..random_refs import random_sku, random_batchref, random_orderid
 
 
 def insert_batch(session, ref, sku, qty, eta, product_version=1):
@@ -93,7 +94,7 @@ def test_concurrent_updates_to_version_are_not_allowed(postgres_session_factory)
     session.commit()
 
     order1, order2 = random_orderid(1), random_orderid(2)
-    exceptions = []
+    exceptions = []  # type: List[Exception]
     try_to_allocate_order1 = lambda: try_to_allocate(order1, sku, exceptions)
     try_to_allocate_order2 = lambda: try_to_allocate(order2, sku, exceptions)
     thread1 = threading.Thread(target=try_to_allocate_order1)
