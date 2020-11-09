@@ -1,5 +1,5 @@
 from allocation.adapters import email
-from allocation.domain import model, events
+from allocation.domain import model, events, commands
 from allocation.domain.model import OrderLine
 from allocation.service_layer import unit_of_work
 
@@ -9,7 +9,7 @@ class InvalidSku(Exception):
 
 
 def add_batch(
-    event: events.BatchCreated, uow: unit_of_work.AbstractUnitOfWork
+    event: commands.CreateBatch, uow: unit_of_work.AbstractUnitOfWork
 ):
     with uow:
         product = uow.products.get(sku=event.sku)
@@ -20,7 +20,7 @@ def add_batch(
         uow.commit()
 
 
-def allocate(event: events.AllocationRequired, uow: unit_of_work.AbstractUnitOfWork) -> str:
+def allocate(event: commands.Allocate, uow: unit_of_work.AbstractUnitOfWork) -> str:
     line = OrderLine(event.orderid, event.sku, event.qty)
     with uow:
         product = uow.products.get(sku=line.sku)
@@ -32,7 +32,7 @@ def allocate(event: events.AllocationRequired, uow: unit_of_work.AbstractUnitOfW
 
 
 def change_batch_quantity(
-        event: events.BatchQuantityChanged, uow: unit_of_work.AbstractUnitOfWork
+        event: commands.ChangeBatchQuantity, uow: unit_of_work.AbstractUnitOfWork
 ):
     with uow:
         product = uow.products.get_by_batchref(batchref=event.ref)
